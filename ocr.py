@@ -1,19 +1,17 @@
-import pytesseract
-from PIL import Image
-import cv2
+# ocr.py
+import easyocr
 import os
 
-# Ruta de Tesseract per Windows
-pytesseract.pytesseract.tesseract_cmd = r"C:\Users\Solapain\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
+lector = easyocr.Reader(['en'], gpu=False)
 
-def detectar_matricula(nom_imatge):
-    img = cv2.imread(nom_imatge)
-    gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def detectar_matricula(ruta_imatge):
+    if not os.path.exists(ruta_imatge):
+        return "⚠️ Imatge no trobada"
 
-    temp_path = "temp.jpg"
-    cv2.imwrite(temp_path, gris)
+    resultats = lector.readtext(ruta_imatge)
 
-    text = pytesseract.image_to_string(Image.open(temp_path), config='--psm 8')
-    os.remove(temp_path)
+    if not resultats:
+        return "❌ No s'ha detectat cap text"
 
-    return text.strip()
+    millor = max(resultats, key=lambda r: r[2])  # r[2] = confiança
+    return millor[1]
