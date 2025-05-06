@@ -1,70 +1,63 @@
-from machine import Pin
+from machine import Pin, time_pulse_us 
 import time
 import network
-import urequests
-import camera  # Per a la càmera ESP32
+import red
+import requests
 
-# Connexió WiFi
-wifi = network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect("alumnes", "edu71243080")
-while not wifi.isconnected():
-    time.sleep(1)
-print("Connectat a WiFi! IP:", wifi.ifconfig()[0])
-
-# Configuració dels pins per al sensor HC-SR04
+VEL_LIMIT = 50  # cm/s
+CAM_IP = "http://172.16.5.195/"  # Sustituye por la IP real de la ESP32-CAM
+# Configuración de los pines del sensor HC-SR04
 TRIG = Pin(5, Pin.OUT)  # Pin de Trigger
 ECHO = Pin(18, Pin.IN)  # Pin de Echo
-CAM_PIN = Pin(15, Pin.OUT)  # Pin de la càmera ESP32 (pot variar depenent de la teva configuració)
 
-VEL_LIMIT = 25  # Límite de velocitat en cm/s (ajusta a les teves necessitats)
+red.do_connect("Alumnes","edu71243080")
 
-# Configuració de la càmera ESP32
-camera.init(0, format=camera.JPEG)  # Inicia la càmera amb format JPEG
+def obtener_distancia():
+    TRIG.off()  # Asegurarse que el Trigger esté apagado
+    time.sleep_us(2)  # Breve espera
+    TRIG.on()  # Enviar pulso ultrasónico
+    time.sleep_us(10)  # Pulso de 10 microsegundos
+    TRIG.off()  # Apagar el Trigger
 
-# Funció per obtenir la distància
-def obtenir_distancia():
-    TRIG.off()
-    time.sleep_us(2)
-    TRIG.on()
-    time.sleep_us(10)
-    TRIG.off()
-
-    duracio = time_pulse_us(ECHO, 1, 30000)
-    distancia = duracio / 58.0  # en cm
+    # Medir el tiempo que tarda el eco en regresar
+    duracion = time_pulse_us(ECHO, 1, 30000)  # Medir duración en microsegundos
+    if duracion < 0:
+        return -1  # Si no se recibe la señal de vuelta, devolver -1 (error)
+    
+    distancia = duracion / 58.0  # Convertir la duración a distancia en cm (velocidad del sonido)
     return distancia
 
-# Funció per activar la càmera i enviar la imatge al servidor Flask
-def activar_camera():
-    print("📸 Capturant foto...")
 
-    # Captura la imatge de la càmera ESP32
-    buf = camera.capture()  # Captura la imatge en format JPEG
+intervalo = 1  # 200 ms entre mediciones (ajustar según necesidad)
 
-    # Envia la imatge al servidor Flask
-    url = "http://192.168.1.100:5000/upload"  # URL del servidor Flask (ajusta si cal)
-    headers = {"Content-Type": "image/jpeg"}
-    res = urequests.post(url, data=buf, headers=headers)
-    
-    print("Resposta del servidor:", res.text)
-
-# Bucle principal per controlar el sensor i activar la càmera
+# Bucle principal para medir velocidad
 while True:
-    d1 = obtenir_distancia()
-    time.sleep(0.2)
-    d2 = obtenir_distancia()
+    # Obtener la distancia en el primer tiempo
+    distancia1 = obtener_distancia()
+    time.sleep(intervalo)
 
-    # Calcular la velocitat del vehicle
-    velocitat = abs(d2 - d1) / 0.2  # cm/s
-    print(f"Velocitat: {velocitat:.2f} cm/s")
+    # Obtener la distancia en el segundo tiempo
+    distancia2 = obtener_distancia()
 
-    if velocitat > VEL_LIMIT:
-        print("🚨 Velocitat massa alta! Activant càmera...")
-        CAM_PIN.on()
-        time.sleep(0.5)  # Activa la càmera breument
-        CAM_PIN.off()
-        activar_camera()  # Envia la foto
-    else:
-        print("Tot correcte. El vehicle no va massa ràpid.")
+    # Calcular la velocidad (cambio de distancia / tiempo)
+    velocidad = abs(distancia2 - distancia1) / intervalo  # cm/s
 
-    time.sleep(1)  # Espera 1 segon abans de tornar a llegir la distància
+    print(f"Distancia 1: {distancia1:.2f} cm")
+    print(f"Distancia 2: {distancia2:.2f} cm")
+    print(f"Velocidad: {velocidad:.2f} cm/s")
+    
+    if velocidad > VEL_LIMIT:
+        print('salta el radar')
+        # La URL del servidor Flask donde se va a realizar la solicitud GET
+        url = "http://127.0.0.1:5000//activar_radar"
+
+        # Realiza la solicitud GET y guarda la respuesta
+        response = requests.get(url)
+
+        # Comprueba si la solicitud fue exitosa
+        if response.status_code == 200:
+            print("Respuesta del servidor:", response.json())  # Imprime la respuesta en formato JSON
+        else:
+            print("Error en la solicitud:", response.status_code)
+
+    time.sleep(1)  # Esperar antes de la siguiente medición

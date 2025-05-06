@@ -2,37 +2,32 @@ from flask import Flask, request, jsonify
 import os
 import easyocr
 import cv2
+import requests
 
 # Inicialitzem el lector d'EasyOCR
 reader = easyocr.Reader(['en'], gpu=False)
+# IP del ESP32 (Asegúrate de cambiar esta dirección por la IP correcta del ESP32)
+esp32_ip = "http://172.16.6.150/capture"
+
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+@app.route('/activar_radar', methods=['GET'])
+def activar_radar():
+    print("Radar activado")
+    # Hacer la solicitud HTTP GET al ESP32 para capturar la imagen
+    response = requests.get(esp32_ip)
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'image' not in request.files:
-        return jsonify({"error": "No image part"}), 400
-
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(filepath)
-
-    # Carregar la imatge i fer OCR
-    img = cv2.imread(filepath)
-    results = reader.readtext(img)
-
-    # Si es detecta alguna matrícula
-    if results:
-        texts = [text for (_, text, _) in results]
-        return jsonify({"matricula_detectada": texts}), 200
+    # Verificar si la solicitud fue exitosa
+    if response.status_code == 200:
+        # Guardar la imagen en el disco duro
+        with open("static\\uploads\\captura.jpg", "wb") as file:
+            file.write(response.content)
+        print("✅ Imagen guardada en captura.jpg")
     else:
-        return jsonify({"error": "No es detecta cap matrícula"}), 400
+        print("❌ Error al obtener la imagen:", response.status_code)
+    return jsonify({"mensaje": "Radar activado"}) 
+
 
 if __name__ == '__main__':
     app.run(debug=True)
