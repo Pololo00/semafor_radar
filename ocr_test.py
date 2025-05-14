@@ -5,7 +5,7 @@ import cv2
 reader = easyocr.Reader(['en'], gpu=False)
 
 # Ruta de la imatge
-imatge_path = "matri.jpeg"
+imatge_path = "static/uploads/captura_2025-05-13_20-00-15.jpg"
 img = cv2.imread(imatge_path)
 
 if img is None:
