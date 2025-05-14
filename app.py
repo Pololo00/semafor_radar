@@ -110,6 +110,12 @@ def login():
 
     return render_template('login.html')
 
+# Ruta para cerrar sesión
+@app.route('/logout')
+def logout():
+    session.pop('user', None)  # Elimina el usuario de la sesión
+    return redirect(url_for('login'))  # Redirige al login
+
 # Ruta para mostrar los registros de multas
 @app.route('/registres')
 def registres():
@@ -117,7 +123,7 @@ def registres():
         return redirect(url_for('login'))  # Redirigir al login si no está autenticado
 
     cursor = conn.cursor()
-    cursor.execute('SELECT matricula, velocitat, imatge_path, processat_ocr FROM semafor')
+    cursor.execute('SELECT matricula, velocitat, imatge_path, processat_ocr FROM radar_deteccions')
     dades = cursor.fetchall()
     cursor.close()
 
