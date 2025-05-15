@@ -34,30 +34,54 @@ def activar_radar():
         response = requests.get(esp32_ip, timeout=5)
 
         if response.status_code == 200:
+            # Generar el nombre y la ruta de la imagen
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             image_filename = f"captura_{timestamp}.jpg"
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
 
+            # Guardar la imagen capturada
             with open(image_path, "wb") as file:
                 file.write(response.content)
 
             print(f"✅ Imatge guardada a {image_path}")
 
-            # 🧠 Executar OCR
+            # Ejecutar OCR para detectar la matrícula
             matricula = detectar_matricula(image_path)
             print(f"🔍 Matrícula detectada: {matricula}")
 
-            # ✅ Guardar la dada en l’array
+            # Simular la velocidad (puedes reemplazar esto con un cálculo real)
+            velocitat = 80.5  # Velocidad simulada
+
+            # Guardar los datos en el array
             lectures_matricula.append({
                 "timestamp": timestamp,
                 "imatge": image_filename,
-                "matricula": matricula
+                "matricula": matricula,
+                "velocitat": velocitat
             })
+            print("✅ Dades guardades en l'array")
 
+            # Insertar los datos en la tabla radar_deteccions
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    'INSERT INTO radar_deteccions (matricula, velocitat, imatge_path, processat_ocr) VALUES (%s, %s, %s, %s)',
+                    (matricula, velocitat, image_path, True)
+                )
+                conn.commit()
+                print("✅ Dades inserides a la base de dades")
+            except mysql.connector.Error as err:
+                print(f"❌ Error al inserir dades: {err}")
+                return jsonify({'error': 'No s\'han pogut inserir les dades a la base de dades'}), 500
+            finally:
+                cursor.close()
+
+            # Devolver la respuesta con los datos procesados
             return jsonify({
                 "missatge": "Captura feta!",
                 "imatge": image_filename,
-                "matricula": matricula
+                "matricula": matricula,
+                "velocitat": velocitat
             })
 
         else:
