@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from ocr import detectar_matricula  # ✅ Importar la funció OCR
+from functools import wraps
 
 # Configuración de la conexión a la base de datos MySQL
 conn = mysql.connector.connect(
@@ -25,6 +26,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 esp32_ip = "http://172.16.3.220/capture"  # IP actual de la càmera
 
 lectures_matricula = []  # ✅ Array per guardar les dades llegides
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:  # Verifica si el usuario está en la sesión
+            return redirect(url_for('login'))  # Redirige al login si no está autenticado
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/activar_radar', methods=['GET'])
 def activar_radar():
@@ -61,7 +70,7 @@ def activar_radar():
             })
             print("✅ Dades guardades en l'array")
 
-            # Insertar los datos en la tabla radar_deteccions
+            # Insertar los datos en la tabla radar_deteccions AQUI POL
             cursor = conn.cursor()
             try:
                 cursor.execute(
@@ -75,7 +84,7 @@ def activar_radar():
                 return jsonify({'error': 'No s\'han pogut inserir les dades a la base de dades'}), 500
             finally:
                 cursor.close()
-
+            # AQUI POL
             # Devolver la respuesta con los datos procesados
             return jsonify({
                 "missatge": "Captura feta!",
@@ -211,6 +220,7 @@ def logout():
 
 # Ruta para mostrar los registros de multas
 @app.route('/registres')
+@login_required
 def registres():
     if 'user' not in session:
         return redirect(url_for('login'))  # Redirigir al login si no está autenticado
