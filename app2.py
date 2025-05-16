@@ -105,7 +105,7 @@ def activar_radar():
 @app.route('/lectures', methods=['GET'])
 def obtenir_lectures():
     return jsonify(lectures_matricula)
-
+#prueba
 # Ruta para recibir la foto del ESP32
 @app.route('/upload', methods=['POST'])
 def upload_image():
