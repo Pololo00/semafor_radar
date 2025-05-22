@@ -74,7 +74,7 @@ def activar_radar():
             cursor = conn.cursor()
             try:
                 cursor.execute(
-                    'INSERT INTO radar_deteccions (matricula, velocitat, imatge_path, processat_ocr) VALUES (%s, %s, %s, %s)',
+                    'INSERT INTO radar_deteccions (matricula, velocitat, imatge_path, processat_ocr, ) VALUES (%s, %s, %s, %s)',
                     (matricula, velocitat, image_path, True)
                 )
                 conn.commit()

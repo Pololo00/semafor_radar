@@ -107,7 +107,7 @@
                                 <th><i class="bi bi-speedometer"></i> Velocitat (km/h)</th>
                                 <th><i class="bi bi-camera-fill"></i> Imatge</th>
                                 <th><i class="bi bi-file-earmark-text"></i> Processat OCR</th>
-                                <th><i class="bi bi-calendar"></i>Data de la multa</th>
+                                <th><i class="bi bi-calendar"></i> Data de la multa</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,6 +125,7 @@
                                         <span class="badge bg-secondary">No</span>
                                     {% endif %}
                                 </td>
+                                <td class="bg-light">{{ registre[4] }}</td> <!-- Aplica fondo gris claro solo a esta celda -->
                             </tr>
                             {% endfor %}
                         </tbody>
