@@ -30,8 +30,6 @@ conn = mysql.connector.connect(
     password="",
     database="semafor"
 )
-
-<<<<<<< HEAD
 app = Flask(__name__)
 app.secret_key = 'secret_key'  # Clave secreta para las sesiones
 
@@ -42,8 +40,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 esp32_ip = "http://172.16.2.224/capture"  # IP actual de la càmera
 
-=======
->>>>>>> 48ff22162442e8d52894d27476e3a2e598504d75
 lectures_matricula = []  # ✅ Array per guardar les dades llegides
 
 def login_required(f):
@@ -63,10 +59,6 @@ def activar_radar():
         response = requests.get(esp32_ip, timeout=5)
 
         if response.status_code == 200:
-<<<<<<< HEAD
-=======
-            # Generar el nombre y la ruta de la imagen
->>>>>>> 48ff22162442e8d52894d27476e3a2e598504d75
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             image_filename = f"captura_{timestamp}.jpg"
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
@@ -109,14 +101,13 @@ def activar_radar():
                 cursor.close()
             # AQUI POL
             # Devolver la respuesta con los datos procesados
-            return jsonify({
+                    return jsonify({
                 "missatge": "Captura feta!",
                 "imatge": image_filename,
                 "matricula": matricula,
                 "velocitat": velocitat
             })
-
-        else:
+            else:
             print("❌ Error HTTP:", response.status_code)
             return jsonify({"error": "No s'ha pogut capturar la imatge"}), 500
 
