@@ -1,0 +1,62 @@
+from machine import Pin, time_pulse_us
+import time
+import network
+import requests
+import red
+
+VEL_LIMIT = 150  # cm/s
+CAM_IP = "http://172.16.4.242/capture"
+TRIG = Pin(5, Pin.OUT)
+ECHO = Pin(18, Pin.IN)
+LED = Pin(2, Pin.OUT)  # LED integrat
+
+red.do_connect("MikroTik-SOLA", "politron333")
+
+def obtener_distancia():
+    TRIG.off()
+    time.sleep_us(2)
+    TRIG.on()
+    time.sleep_us(10)
+    TRIG.off()
+
+    duracion = time_pulse_us(ECHO, 1, 30000)
+    if duracion < 0:
+        return -1
+    distancia = duracion / 58.0
+    return distancia
+
+intervalo = 1  # 1 segon entre mesures
+
+while True:
+    print("🔴 LED ENCÈS (10s) → radar actiu")
+    LED.on()
+    inici = time.time()
+    while time.time() - inici < 20:
+        # Només mesura quan el LED està encès
+        distancia1 = obtener_distancia()
+        time.sleep(intervalo)
+        distancia2 = obtener_distancia()
+        velocidad = abs(distancia2 - distancia1) / intervalo
+
+        print(f"Distancia 1: {distancia1:.2f} cm")
+        print(f"Distancia 2: {distancia2:.2f} cm")
+        print(f"Velocidad: {velocidad:.2f} cm/s")
+
+        if velocidad > VEL_LIMIT:
+            print('🚨 Radar salta!')
+            try:
+                url = f"http://192.168.94.251:5000/activar_radar?velocitat={velocidad:.2f}"
+                response = requests.get(url)
+                if response.status_code == 200:
+                    print("✅ Resposta servidor:", response.json())
+                else:
+                    print("⚠️ Error servidor:", response.status_code)
+            except Exception as e:
+                print("❌ Error HTTP:", e)
+
+        time.sleep(1)
+
+    print("🟢 LED APAGAT (5s) → radar inactiu")
+    LED.off()
+    time.sleep(5)
+
