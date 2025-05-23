@@ -11,7 +11,7 @@ from functools import wraps
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
+    password="Asdqwe!23",
     database="semafor"
 )
 
@@ -27,7 +27,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
+    password="Asdqwe!23",
     database="semafor"
 )
 app = Flask(__name__)
