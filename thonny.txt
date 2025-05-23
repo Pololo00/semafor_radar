@@ -45,7 +45,7 @@ while True:
         if velocidad > VEL_LIMIT:
             print('🚨 Radar salta!')
             try:
-                url = f"http://192.168.94.251:5000/activar_radar?velocitat={velocidad:.2f}"
+                url = f"http://192.168.94.251:5000/activar_radar?velocitat={velocidad:.2f}" #ip del dispositiu per rebre l'informacio per http
                 response = requests.get(url)
                 if response.status_code == 200:
                     print("✅ Resposta servidor:", response.json())
