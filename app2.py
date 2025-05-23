@@ -8,26 +8,11 @@ from ocr import detectar_matricula  # ✅ Importar la funció OCR
 from functools import wraps
 
 # Configuración de la conexión a la base de datos MySQL
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Asdqwe!23",
-    database="semafor"
-)
-
-app = Flask(__name__)
-app.secret_key = 'secret_key'  # Clave secreta para las sesiones
-
-# Carpeta para almacenar las imágenes
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 # Configuración de la conexión a la base de datos MySQL
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="Asdqwe!23",
+    password="",
     database="semafor"
 )
 app = Flask(__name__)
@@ -126,44 +111,7 @@ def activar_radar():
 def obtenir_lectures():
     return jsonify(lectures_matricula)
 #prueba
-# Ruta para recibir la foto del ESP32
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    if 'file' not in request.files:
-        return "No hi ha cap fitxer a la petició", 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return "No s'ha seleccionat cap fitxer", 400
-
-    # Obtener la fecha actual para guardar la imagen
-    now = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{now}_foto.jpg")
-
-    # Guardar la imagen en la carpeta static/uploads/
-    file.save(filepath)
-    print(f"Imatge desada a {filepath}")
-
-    # Aquí puedes llamar a la función de OCR para procesar la matrícula
-    matricula = detectar_matricula(filepath)  # Asegúrate de que esta función esté definida
-
-    # Simular la velocidad (puedes reemplazar esto con un cálculo real si lo tienes)
-    velocitat = 80.5  # Velocidad simulada, reemplázala con el valor real
-
-    # Insertar los datos en la tabla radar_deteccions
-    timestamp_db = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            'INSERT INTO users (username, password, email) VALUES (%s, %s, %s)',
-            (username, hashed_password, email)
-        )
-        conn.commit()
-    except mysql.connector.IntegrityError:
-        return "El usuario o el correo ya existen"
-    finally:
-        cursor.close()
 
 # Función para validar un usuario al iniciar sesión
 def validate_user(username, password):
