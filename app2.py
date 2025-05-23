@@ -11,7 +11,7 @@ from functools import wraps
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
+    password="Asdqwe!23",
     database="semafor"
 )
 
@@ -27,7 +27,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
+    password="Asdqwe!23",
     database="semafor"
 )
 app = Flask(__name__)
@@ -219,17 +219,18 @@ def register():
 # Ruta para iniciar sesión
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
         if validate_user(username, password):
-            session['user'] = username  # Guardar usuario en la sesión
+            session['user'] = username
             return redirect(url_for('registres'))
         else:
-            return "Credenciales incorrectas", 401
+            error = "Usuari o contrasenya incorrectes"
 
-    return render_template('login.html')
+    return render_template('login.html', error=error)
 
 # Ruta para cerrar sesión
 @app.route('/logout')
