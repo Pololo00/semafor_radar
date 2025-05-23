@@ -219,18 +219,17 @@ def register():
 # Ruta para iniciar sesión
 @app.route('/', methods=['GET', 'POST'])
 def login():
-    error = None
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
         if validate_user(username, password):
-            session['user'] = username
+            session['user'] = username  # Guardar usuario en la sesión
             return redirect(url_for('registres'))
         else:
-            error = "Usuari o contrasenya incorrectes"
+            return "Credenciales incorrectas", 401
 
-    return render_template('login.html', error=error)
+    return render_template('login.html')
 
 # Ruta para cerrar sesión
 @app.route('/logout')
