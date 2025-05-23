@@ -38,7 +38,7 @@ UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-esp32_ip = "http://192.168.94.246/capture"  # IP actual de la càmera
+esp32_ip = "http://172.16.1.215/capture"  # IP actual de la càmera
 
 lectures_matricula = []  # ✅ Array per guardar les dades llegides
 
@@ -185,6 +185,22 @@ def get_users():
     return users
 
 # Ruta para registrar usuarios
+
+
+# 👇 AFEGEIX AIXÒ ABANS de la ruta /register
+def save_user(username, password, email=None):
+    hashed_password = generate_password_hash(password)  # Encripta la contrasenya
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            'INSERT INTO users (username, password, email) VALUES (%s, %s, %s)',
+            (username, hashed_password, email)
+        )
+        conn.commit()
+    except mysql.connector.IntegrityError:
+        return "El usuario o el correo ya existen"
+    finally:
+        cursor.close()
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
